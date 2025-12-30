@@ -10,108 +10,20 @@
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2344/2344132.png">
 
     <style>
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
-            color: #e0e0e0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-            margin: 0;
-            background-attachment: fixed;
-        }
-        .container {
-            background: #1e1e1e;
-            padding: 28px;
-            border-radius: 16px;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-            width: 100%;
-            max-width: 420px;
-            border: 1px solid #333;
-            margin: 20px auto;
-        }
-        h2 {
-            text-align: center;
-            color: #bb86fc;
-            margin-bottom: 32px;
-            font-size: 26px;
-            font-weight: 600;
-            text-shadow: 0 2px 6px rgba(0,0,0,0.4);
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #cfcfcf;
-            font-size: 15px;
-        }
-        input, select, textarea {
-            width: 100%;
-            padding: 14px;
-            border: 1px solid #444;
-            border-radius: 12px;
-            box-sizing: border-box;
-            font-size: 16px;
-            background-color: #2a2a2a;
-            color: #ffffff;
-            transition: all 0.3s ease;
-        }
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: #bb86fc;
-            box-shadow: 0 0 0 4px rgba(187, 134, 252, 0.25);
-            background-color: #333;
-        }
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-        .btn-container {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            margin-top: 25px;
-        }
-        button {
-            padding: 16px;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 17px;
-            font-weight: bold;
-            color: white;
-            transition: all 0.2s ease;
-        }
-        .btn-insert {
-            background: linear-gradient(135deg, #7e57c2, #5e35b1);
-        }
-        .btn-reset {
-            background: linear-gradient(135deg, #424242, #212121);
-        }
-        
-        /* Pending Status Styling */
-        #statusContainer {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 14px;
-            color: #bb86fc;
-            font-weight: bold;
-            background: rgba(187, 134, 252, 0.1);
-            padding: 12px;
-            border-radius: 10px;
-            border: 1px dashed #bb86fc;
-            display: none; /* ආරම්භයේදී නොපෙන්වයි */
-        }
-
-        @media (max-width: 480px) {
-            body { padding: 10px; }
-            .container { padding: 24px; }
-        }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: linear-gradient(135deg, #0f0f0f, #1a1a1a); color: #e0e0e0; padding: 20px; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; background-attachment: fixed; }
+        .container { background: #1e1e1e; padding: 28px; border-radius: 16px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6); width: 100%; max-width: 420px; border: 1px solid #333; margin: 20px auto; }
+        h2 { text-align: center; color: #bb86fc; margin-bottom: 32px; font-size: 26px; font-weight: 600; text-shadow: 0 2px 6px rgba(0,0,0,0.4); }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #cfcfcf; font-size: 15px; }
+        input, select, textarea { width: 100%; padding: 14px; border: 1px solid #444; border-radius: 12px; box-sizing: border-box; font-size: 16px; background-color: #2a2a2a; color: #ffffff; transition: all 0.3s ease; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #bb86fc; box-shadow: 0 0 0 4px rgba(187, 134, 252, 0.25); background-color: #333; }
+        textarea { resize: vertical; min-height: 80px; }
+        .btn-container { display: flex; flex-direction: column; gap: 14px; margin-top: 25px; }
+        button { padding: 16px; border: none; border-radius: 12px; cursor: pointer; font-size: 17px; font-weight: bold; color: white; transition: all 0.2s ease; }
+        .btn-insert { background: linear-gradient(135deg, #7e57c2, #5e35b1); }
+        .btn-reset { background: linear-gradient(135deg, #424242, #212121); }
+        #statusContainer { text-align: center; margin-top: 20px; font-size: 14px; color: #bb86fc; font-weight: bold; background: rgba(187, 134, 252, 0.1); padding: 12px; border-radius: 10px; border: 1px dashed #bb86fc; display: none; }
+        @media (max-width: 480px) { body { padding: 10px; } .container { padding: 24px; } }
     </style>
 </head>
 <body>
@@ -119,44 +31,16 @@
 <div class="container">
     <h2>Gedlix Tracker</h2>
     <form id="dataForm">
-        <div class="form-group">
-            <label for="date">Date</label>
-            <input type="date" id="date" name="date" required>
-        </div>
-        <div class="form-group">
-            <label for="description">Description</label>
-            <textarea id="description" name="description" placeholder="Enter description" required></textarea>
-        </div>
-        <div class="form-group">
-            <label for="category">Category</label>
-            <select id="category" name="category">
-                <option value="My">My</option>
-                <option value="Parents">Parents</option>
-                <option value="Siblings">Siblings</option>
-                <option value="Vehicle">Vehicle</option>
-                <option value="Hire">Hire</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="type">Type</label>
-            <select id="type" name="type">
-                <option value="Income">Income</option>
-                <option value="Expenses">Expenses</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="price">Amount (Rs.)</label>
-            <input type="number" id="price" name="price" step="0.01" placeholder="0.00" required>
-        </div>
-        
+        <div class="form-group"><label>Date</label><input type="date" id="date" name="date" required></div>
+        <div class="form-group"><label>Description</label><textarea id="description" name="description" placeholder="Enter description" required></textarea></div>
+        <div class="form-group"><label>Category</label><select id="category" name="category"><option value="My">My</option><option value="Parents">Parents</option><option value="Siblings">Siblings</option><option value="Vehicle">Vehicle</option><option value="Hire">Hire</option></select></div>
+        <div class="form-group"><label>Type</label><select id="type" name="type"><option value="Income">Income</option><option value="Expenses">Expenses</option></select></div>
+        <div class="form-group"><label>Amount (Rs.)</label><input type="number" id="price" name="price" step="0.01" placeholder="0.00" required></div>
         <div class="btn-container">
             <button type="submit" class="btn-insert" id="submitBtn">Insert Data</button>
             <button type="button" class="btn-reset" id="resetBtn">Reset Form</button>
         </div>
-
-        <div id="statusContainer">
-            🔄 Pending to Sync: <span id="pendingCount">0</span>
-        </div>
+        <div id="statusContainer">🔄 Pending to Sync: <span id="pendingCount">0</span></div>
     </form>
 </div>
 
@@ -167,12 +51,9 @@
     const resetBtn = document.getElementById('resetBtn');
     let db;
 
-    // අද දිනය සකස් කිරීම
     document.getElementById('date').valueAsDate = new Date();
 
-    // 1. IndexedDB ආරම්භ කිරීම
     const request = indexedDB.open('GedlixTrackerDB', 1);
-
     request.onupgradeneeded = (e) => {
         db = e.target.result;
         if (!db.objectStoreNames.contains('pendingData')) {
@@ -182,11 +63,11 @@
 
     request.onsuccess = (e) => {
         db = e.target.result;
-        updatePendingCount(); // ආරම්භයේදී දත්ත ගණන පරීක්ෂා කරයි
+        updatePendingCount();
         syncData(); 
     };
 
-    // 2. Pending Count එක Update කිරීමේ Function එක
+    // Pending Count එක නිවැරදිව පෙන්වීමට
     function updatePendingCount() {
         if (!db) return;
         const transaction = db.transaction(['pendingData'], 'readonly');
@@ -197,25 +78,17 @@
             const count = countReq.result;
             const statusBox = document.getElementById('statusContainer');
             const countLabel = document.getElementById('pendingCount');
-            
-            if (count > 0) {
-                statusBox.style.display = 'block';
-                countLabel.innerText = count;
-            } else {
-                statusBox.style.display = 'none';
-            }
+            statusBox.style.display = count > 0 ? 'block' : 'none';
+            countLabel.innerText = count;
         };
     }
 
-    // 3. Form Submit
     form.addEventListener('submit', e => {
         e.preventDefault();
         submitBtn.disabled = true;
         submitBtn.innerText = "Processing...";
-
-        const formData = new FormData(form);
         const dataObj = {};
-        formData.forEach((value, key) => dataObj[key] = value);
+        new FormData(form).forEach((value, key) => dataObj[key] = value);
 
         if (navigator.onLine) {
             sendData(dataObj);
@@ -224,12 +97,8 @@
         }
     });
 
-    // 4. Online දත්ත යැවීම
     function sendData(data) {
-        fetch(scriptURL, { 
-            method: 'POST', 
-            body: new URLSearchParams(data) 
-        })
+        fetch(scriptURL, { method: 'POST', body: new URLSearchParams(data) })
         .then(() => {
             alert("Data inserted successfully!");
             resetForm();
@@ -242,47 +111,53 @@
         });
     }
 
-    // 5. Offline ගබඩා කිරීම
     function saveToOffline(data) {
         const transaction = db.transaction(['pendingData'], 'readwrite');
         const store = transaction.objectStore('pendingData');
         store.add(data);
-
         transaction.oncomplete = () => {
-            alert("Offline: දත්ත ගබඩා විය. Internet ලැබුණු පසු sync වේවි.");
+            alert("Offline: දත්ත සුරැකිණි.");
             resetForm();
             submitBtn.disabled = false;
             submitBtn.innerText = "Insert Data";
-            updatePendingCount(); // Count එක update කරයි
+            updatePendingCount(); 
         };
     }
 
-    // 6. දත්ත Sync කිරීම
+    // Sync කිරීමේ Function එක නිවැරදි කර ඇත
     function syncData() {
         if (!navigator.onLine || !db) return;
 
-        const transaction = db.transaction(['pendingData'], 'readwrite');
+        const transaction = db.transaction(['pendingData'], 'readonly');
         const store = transaction.objectStore('pendingData');
         const cursorRequest = store.openCursor();
 
         cursorRequest.onsuccess = (e) => {
             const cursor = e.target.result;
             if (cursor) {
-                fetch(scriptURL, { 
-                    method: 'POST', 
-                    body: new URLSearchParams(cursor.value) 
+                const currentData = cursor.value;
+                const currentKey = cursor.key;
+
+                fetch(scriptURL, { method: 'POST', body: new URLSearchParams(currentData) })
+                .then(response => {
+                    if(response.ok) {
+                        // සාර්ථකව යැවුණු පසු දත්තය මැකීම
+                        const deleteTx = db.transaction(['pendingData'], 'readwrite');
+                        deleteTx.objectStore('pendingData').delete(currentKey);
+                        
+                        // මකා දැමීම අවසන් වූ පසු පමණක් UI එක Update කිරීම
+                        deleteTx.oncomplete = () => {
+                            updatePendingCount();
+                        };
+                    }
                 })
-                .then(() => {
-                    const deleteTx = db.transaction(['pendingData'], 'readwrite');
-                    deleteTx.objectStore('pendingData').delete(cursor.key);
-                    deleteTx.oncomplete = () => updatePendingCount(); // එකක් යැවූ පසු count එක අඩු කරයි
-                });
+                .catch(err => console.log("Sync failed for record", err));
+                
                 cursor.continue();
             }
         };
     }
 
-    // Internet ලැබුණු විට auto-sync
     window.addEventListener('online', syncData);
 
     function resetForm() {
@@ -292,14 +167,11 @@
     
     resetBtn.addEventListener('click', resetForm);
 
-    // 7. PWA Service Worker Registration
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js')
-            .then(() => console.log("Service Worker Registered"));
+            navigator.serviceWorker.register('sw.js').then(() => console.log("SW Registered"));
         });
     }
 </script>
-
 </body>
 </html>
