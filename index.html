@@ -33,7 +33,20 @@
     <form id="dataForm">
         <div class="form-group"><label>Date</label><input type="date" id="date" name="date" required></div>
         <div class="form-group"><label>Description</label><textarea id="description" name="description" placeholder="Enter description" required></textarea></div>
-        <div class="form-group"><label>Category</label><select id="category" name="category"><option value="My">My</option><option value="Parents">Parents</option><option value="Siblings">Siblings</option><option value="Vehicle">Vehicle</option><option value="Hire">Hire</option></select></div>
+        <div class="form-group">
+  <label>Category</label>
+  <select id="category" name="category">
+    <option value="My">My</option>
+    <option value="Home">Home</option>
+    <option value="Bill and Package">Bill and Package</option>
+    <option value="Vehicle">Vehicle</option>
+    <option value="Parent">Parent</option>
+    <option value="Sibling">Sibling</option>
+    <option value="Girlfriend">Girlfriend</option>
+    <option value="Business">Business</option>
+    <option value="Friend">Friend</option>
+  </select>
+</div>
         <div class="form-group"><label>Type</label><select id="type" name="type"><option value="Income">Income</option><option value="Expenses">Expenses</option></select></div>
         <div class="form-group"><label>Amount (Rs.)</label><input type="number" id="price" name="price" step="0.01" placeholder="0.00" required></div>
         <div class="btn-container">
@@ -175,3 +188,4 @@
 </script>
 </body>
 </html>
+
