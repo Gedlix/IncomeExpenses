@@ -29,36 +29,43 @@
 <body>
 
 <div class="container">
-    <h2>CashFlow</h2>
+    <h2>Gedlix Tracker</h2>
     <form id="dataForm">
-        <div class="form-group"><label>Date</label><input type="date" id="date" name="date" required></div>
-        <div class="form-group"><label>Description</label><textarea id="description" name="description" placeholder="Enter description" required></textarea></div>
         <div class="form-group">
-  <label>Category</label>
-  <select id="category" name="category">
-    <option value="My">My</option>
-    <option value="Home">Home</option>
-    <option value="Bill and Package">Bill and Package</option>
-    <option value="Vehicle">Vehicle</option>
-    <option value="Parent">Parent</option>
-    <option value="Sibling">Sibling</option>
-    <option value="Girlfriend">Girlfriend</option>
-    <option value="Business">Business</option>
-    <option value="Friend">Friend</option>
-  </select>
-</div>
+            <label for="date">Date</label>
+            <input type="date" id="date" name="date" required>
+        </div>
         <div class="form-group">
-            <label>Type</label>
-            <select id="type" name="type">
-                <option value="Expenses">Expenses</option>
-                <option value="Income">Income</option>
+            <label for="description">Description</label>
+            <textarea id="description" name="description" placeholder="Enter description" required></textarea>
+        </div>
+        <div class="form-group">
+            <label for="category">Category</label>
+            <select id="category" name="category">
+                <option value="My">My</option>
+                <option value="Parents">Parents</option>
+                <option value="Siblings">Siblings</option>
+                <option value="Vehicle">Vehicle</option>
+                <option value="Hire">Hire</option>
             </select>
         </div>
-        <div class="form-group"><label>Amount (Rs.)</label><input type="number" id="price" name="price" step="0.01" placeholder="0.00" required></div>
+        <div class="form-group">
+            <label for="type">Type</label>
+            <select id="type" name="type">
+                <option value="Income">Income</option>
+                <option value="Expenses">Expenses</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="price">Amount (Rs.)</label>
+            <input type="number" id="price" name="price" step="0.01" placeholder="0.00" required>
+        </div>
+        
         <div class="btn-container">
             <button type="submit" class="btn-insert" id="submitBtn">Insert Data</button>
             <button type="button" class="btn-reset" id="resetBtn">Reset Form</button>
         </div>
+
         <div id="statusContainer">🔄 Pending to Sync: <span id="pendingCount">0</span></div>
     </form>
 </div>
@@ -72,6 +79,7 @@
 
     document.getElementById('date').valueAsDate = new Date();
 
+    // 1. IndexedDB Setup
     const request = indexedDB.open('GedlixTrackerDB', 1);
     request.onupgradeneeded = (e) => {
         db = e.target.result;
@@ -79,35 +87,21 @@
             db.createObjectStore('pendingData', { autoIncrement: true });
         }
     };
-
     request.onsuccess = (e) => {
         db = e.target.result;
         updatePendingCount();
-        syncData(); 
+        syncData();
     };
 
-    // Pending Count එක නිවැරදිව පෙන්වීමට
-    function updatePendingCount() {
-        if (!db) return;
-        const transaction = db.transaction(['pendingData'], 'readonly');
-        const store = transaction.objectStore('pendingData');
-        const countReq = store.count();
-
-        countReq.onsuccess = () => {
-            const count = countReq.result;
-            const statusBox = document.getElementById('statusContainer');
-            const countLabel = document.getElementById('pendingCount');
-            statusBox.style.display = count > 0 ? 'block' : 'none';
-            countLabel.innerText = count;
-        };
-    }
-
+    // 2. Form Submit (Faster logic)
     form.addEventListener('submit', e => {
         e.preventDefault();
         submitBtn.disabled = true;
         submitBtn.innerText = "Processing...";
+
+        const formData = new FormData(form);
         const dataObj = {};
-        new FormData(form).forEach((value, key) => dataObj[key] = value);
+        formData.forEach((value, key) => dataObj[key] = value);
 
         if (navigator.onLine) {
             sendData(dataObj);
@@ -117,7 +111,11 @@
     });
 
     function sendData(data) {
-        fetch(scriptURL, { method: 'POST', body: new URLSearchParams(data) })
+        fetch(scriptURL, { 
+            method: 'POST', 
+            body: new URLSearchParams(data),
+            mode: 'no-cors' // වේගය වැඩි කිරීමට
+        })
         .then(() => {
             alert("Data inserted successfully!");
             resetForm();
@@ -132,48 +130,58 @@
 
     function saveToOffline(data) {
         const transaction = db.transaction(['pendingData'], 'readwrite');
-        const store = transaction.objectStore('pendingData');
-        store.add(data);
+        transaction.objectStore('pendingData').add(data);
         transaction.oncomplete = () => {
-            alert("Offline: දත්ත සුරැකිණි.");
+            alert("Saved locally!"); // ඉංග්‍රීසි භාෂාවෙන්
             resetForm();
             submitBtn.disabled = false;
             submitBtn.innerText = "Insert Data";
-            updatePendingCount(); 
+            updatePendingCount();
         };
     }
 
-    // Sync කිරීමේ Function එක නිවැරදි කර ඇත
-    function syncData() {
+    // 3. SEQUENTIAL SYNC ලොජික් එක (එකින් එක යැවීම)
+    async function syncData() {
         if (!navigator.onLine || !db) return;
 
-        const transaction = db.transaction(['pendingData'], 'readonly');
-        const store = transaction.objectStore('pendingData');
-        const cursorRequest = store.openCursor();
+        const tx = db.transaction(['pendingData'], 'readonly');
+        const store = tx.objectStore('pendingData');
+        
+        const records = await new Promise(res => { store.getAll().onsuccess = (e) => res(e.target.result); });
+        const keys = await new Promise(res => { store.getAllKeys().onsuccess = (e) => res(e.target.result); });
 
-        cursorRequest.onsuccess = (e) => {
-            const cursor = e.target.result;
-            if (cursor) {
-                const currentData = cursor.value;
-                const currentKey = cursor.key;
+        if (records.length === 0) return;
 
-                fetch(scriptURL, { method: 'POST', body: new URLSearchParams(currentData) })
-                .then(response => {
-                    if(response.ok) {
-                        // සාර්ථකව යැවුණු පසු දත්තය මැකීම
-                        const deleteTx = db.transaction(['pendingData'], 'readwrite');
-                        deleteTx.objectStore('pendingData').delete(currentKey);
-                        
-                        // මකා දැමීම අවසන් වූ පසු පමණක් UI එක Update කිරීම
-                        deleteTx.oncomplete = () => {
-                            updatePendingCount();
-                        };
-                    }
-                })
-                .catch(err => console.log("Sync failed for record", err));
+        for (let i = 0; i < records.length; i++) {
+            try {
+                await fetch(scriptURL, { 
+                    method: 'POST', 
+                    body: new URLSearchParams(records[i]), 
+                    mode: 'no-cors' 
+                });
                 
-                cursor.continue();
+                const delTx = db.transaction(['pendingData'], 'readwrite');
+                await new Promise(res => {
+                    delTx.objectStore('pendingData').delete(keys[i]).onsuccess = res;
+                });
+                
+                updatePendingCount();
+                await new Promise(r => setTimeout(r, 500)); 
+                
+            } catch (err) {
+                console.log("Sync failed for record", i);
+                break;
             }
+        }
+    }
+
+    function updatePendingCount() {
+        if (!db) return;
+        const countReq = db.transaction(['pendingData'], 'readonly').objectStore('pendingData').count();
+        countReq.onsuccess = () => {
+            const count = countReq.result;
+            document.getElementById('statusContainer').style.display = count > 0 ? 'block' : 'none';
+            document.getElementById('pendingCount').innerText = count;
         };
     }
 
@@ -187,12 +195,8 @@
     resetBtn.addEventListener('click', resetForm);
 
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js').then(() => console.log("SW Registered"));
-        });
+        window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); });
     }
 </script>
 </body>
 </html>
-
-
