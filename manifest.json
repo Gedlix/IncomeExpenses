@@ -1,15 +1,16 @@
 {
-  "name": "Gedlix Tracker",
-  "short_name": "Gedlix",
+  "name": "CashFlow",
+  "short_name": "CashFlow",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#1e1e1e",
   "theme_color": "#bb86fc",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/2344/2344132.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/7892/7892684.png",
       "sizes": "512x512",
       "type": "image/png"
     }
   ]
+
 }
