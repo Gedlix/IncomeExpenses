@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gedlix Tracker</title>
     
     <link rel="manifest" href="manifest.json">
@@ -10,25 +10,34 @@
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2344/2344132.png">
 
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: linear-gradient(135deg, #0f0f0f, #1a1a1a); color: #e0e0e0; padding: 20px; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; background-attachment: fixed; }
-        .container { background: #1e1e1e; padding: 28px; border-radius: 16px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6); width: 100%; max-width: 420px; border: 1px solid #333; margin: 20px auto; }
-        h2 { text-align: center; color: #bb86fc; margin-bottom: 32px; font-size: 26px; font-weight: 600; text-shadow: 0 2px 6px rgba(0,0,0,0.4); }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: 600; color: #cfcfcf; font-size: 15px; }
-        input, select, textarea { width: 100%; padding: 14px; border: 1px solid #444; border-radius: 12px; box-sizing: border-box; font-size: 16px; background-color: #2a2a2a; color: #ffffff; transition: all 0.3s ease; appearance: none; } /* appearance: none මඟින් මොබයිල් style පාලනය කරයි */
-        input:focus, select:focus, textarea:focus { outline: none; border-color: #bb86fc; box-shadow: 0 0 0 4px rgba(187, 134, 252, 0.25); background-color: #333; }
+        :root { --primary: #bb86fc; --bg: #0f0f0f; --card: #1e1e1e; }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: #e0e0e0; padding: 15px; margin: 0; display: flex; justify-content: center; }
+        .container { background: var(--card); padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 100%; max-width: 400px; margin-top: 20px; border: 1px solid #333; }
+        h2 { text-align: center; color: var(--primary); margin-bottom: 25px; font-size: 24px; }
+        .form-group { margin-bottom: 18px; position: relative; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #bbb; font-size: 14px; }
         
-        /* Dropdown එකට ඊතලයක් එක් කිරීම */
-        .select-wrapper { position: relative; }
-        .select-wrapper::after { content: '▼'; font-size: 12px; color: #bb86fc; position: absolute; right: 15px; top: 50%; transform: translateY(-50%); pointer-events: none; }
+        /* Mobile Friendly Inputs */
+        input, select, textarea { 
+            width: 100%; padding: 12px; border: 1px solid #444; border-radius: 10px; 
+            background: #252525; color: #fff; font-size: 16px; /* 16px prevents auto-zoom on iOS */
+            box-sizing: border-box; transition: 0.3s; -webkit-appearance: none; 
+        }
+        input:focus, select:focus { border-color: var(--primary); outline: none; background: #2d2d2d; }
 
-        #otherDescription { display: none; margin-top: 10px; border-color: #7e57c2; }
-        .btn-container { display: flex; flex-direction: column; gap: 14px; margin-top: 25px; }
-        button { padding: 16px; border: none; border-radius: 12px; cursor: pointer; font-size: 17px; font-weight: bold; color: white; transition: all 0.2s ease; }
+        /* Custom Dropdown Arrow */
+        .select-wrapper { position: relative; }
+        .select-wrapper::after { 
+            content: '▼'; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); 
+            color: var(--primary); font-size: 12px; pointer-events: none; 
+        }
+
+        #otherInputWrapper { display: none; margin-top: 10px; }
+        .btn-container { display: flex; flex-direction: column; gap: 12px; margin-top: 25px; }
+        button { padding: 15px; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: bold; color: #fff; transition: 0.2s; }
         .btn-insert { background: linear-gradient(135deg, #7e57c2, #5e35b1); }
-        .btn-reset { background: linear-gradient(135deg, #424242, #212121); }
-        #statusContainer { text-align: center; margin-top: 20px; font-size: 14px; color: #bb86fc; font-weight: bold; background: rgba(187, 134, 252, 0.1); padding: 12px; border-radius: 10px; border: 1px dashed #bb86fc; display: none; }
-        @media (max-width: 480px) { body { padding: 10px; } .container { padding: 24px; } }
+        .btn-reset { background: #333; }
+        #statusContainer { text-align: center; margin-top: 15px; font-size: 13px; color: var(--primary); background: rgba(187,134,252,0.1); padding: 10px; border-radius: 8px; display: none; }
     </style>
 </head>
 <body>
@@ -37,14 +46,14 @@
     <h2>Gedlix Tracker</h2>
     <form id="dataForm">
         <div class="form-group">
-            <label for="date">Date</label>
+            <label>Date</label>
             <input type="date" id="date" name="date" required>
         </div>
 
         <div class="form-group">
-            <label for="descriptionSelect">Description</label>
+            <label>Description</label>
             <div class="select-wrapper">
-                <select id="descriptionSelect" onchange="checkDescription(this)">
+                <select id="descSelect">
                     <option value="Current Bill">Current Bill</option>
                     <option value="Vegetable">Vegetable</option>
                     <option value="Facebook Ad">Facebook Ad</option>
@@ -52,14 +61,16 @@
                     <option value="Other">Other (Type custom...)</option>
                 </select>
             </div>
-            <input type="text" id="otherDescription" placeholder="Enter custom description">
-            <input type="hidden" id="finalDescription" name="description">
+            <div id="otherInputWrapper">
+                <input type="text" id="customDesc" placeholder="Enter custom description">
+            </div>
+            <input type="hidden" id="finalDesc" name="description">
         </div>
 
         <div class="form-group">
-            <label for="category">Category</label>
+            <label>Category</label>
             <div class="select-wrapper">
-                <select id="category" name="category">
+                <select name="category">
                     <option value="My">My</option>
                     <option value="Parents">Parents</option>
                     <option value="Siblings">Siblings</option>
@@ -68,26 +79,28 @@
                 </select>
             </div>
         </div>
+
         <div class="form-group">
-            <label for="type">Type</label>
+            <label>Type</label>
             <div class="select-wrapper">
-                <select id="type" name="type">
+                <select name="type">
                     <option value="Income">Income</option>
                     <option value="Expenses">Expenses</option>
                 </select>
             </div>
         </div>
+
         <div class="form-group">
-            <label for="price">Amount (Rs.)</label>
-            <input type="number" id="price" name="price" step="0.01" placeholder="0.00" required>
+            <label>Amount (Rs.)</label>
+            <input type="number" name="price" step="0.01" placeholder="0.00" required>
         </div>
         
         <div class="btn-container">
             <button type="submit" class="btn-insert" id="submitBtn">Insert Data</button>
-            <button type="button" class="btn-reset" id="resetBtn">Reset Form</button>
+            <button type="button" class="btn-reset" onclick="resetForm()">Reset Form</button>
         </div>
 
-        <div id="statusContainer">🔄 Pending to Sync: <span id="pendingCount">0</span></div>
+        <div id="statusContainer">🔄 Syncing: <span id="pendingCount">0</span></div>
     </form>
 </div>
 
@@ -95,68 +108,63 @@
     const scriptURL = 'https://script.google.com/macros/s/AKfycbyugQ9FE4Gw9pPKwlq_-aRzQKYZv92X-RK7dfU9FeV7R1CvIy3zk0syAvi-Uc-QC-Ml/exec';
     const form = document.getElementById('dataForm');
     const submitBtn = document.getElementById('submitBtn');
+    const descSelect = document.getElementById('descSelect');
+    const otherWrapper = document.getElementById('otherInputWrapper');
     let db;
 
+    // Set Date
     document.getElementById('date').valueAsDate = new Date();
 
-    // Other box එක පාලනය කිරීම
-    function checkDescription(select) {
-        const otherInput = document.getElementById('otherDescription');
-        if (select.value === 'Other') {
-            otherInput.style.display = 'block';
-            otherInput.required = true;
-        } else {
-            otherInput.style.display = 'none';
-            otherInput.required = false;
+    // Handle "Other" visibility
+    descSelect.addEventListener('change', function() {
+        otherWrapper.style.display = (this.value === 'Other') ? 'block' : 'none';
+    });
+
+    // DB Setup
+    const request = indexedDB.open('GedlixTrackerDB', 2); // Version up to trigger update
+    request.onupgradeneeded = (e) => {
+        if (!e.target.result.objectStoreNames.contains('pendingData')) {
+            e.target.result.createObjectStore('pendingData', { autoIncrement: true });
         }
-    }
+    };
+    request.onsuccess = (e) => { db = e.target.result; updateCount(); syncData(); };
 
-    // IndexedDB Setup
-    const request = indexedDB.open('GedlixTrackerDB', 1);
-    request.onupgradeneeded = (e) => { e.target.result.createObjectStore('pendingData', { autoIncrement: true }); };
-    request.onsuccess = (e) => { db = e.target.result; updatePendingCount(); syncData(); };
-
-    form.addEventListener('submit', e => {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
         submitBtn.disabled = true;
         submitBtn.innerText = "Processing...";
 
-        // Description අගය තෝරාගැනීම
-        const descSelect = document.getElementById('descriptionSelect');
-        const otherInput = document.getElementById('otherDescription');
-        document.getElementById('finalDescription').value = (descSelect.value === 'Other') ? otherInput.value : descSelect.value;
+        // Set final description
+        document.getElementById('finalDesc').value = (descSelect.value === 'Other') ? document.getElementById('customDesc').value : descSelect.value;
 
-        const formData = new FormData(form);
-        const dataObj = {};
-        formData.forEach((value, key) => dataObj[key] = value);
+        const data = {};
+        new FormData(form).forEach((v, k) => data[k] = v);
 
         if (navigator.onLine) {
-            sendData(dataObj);
+            await send(data);
         } else {
-            saveToOffline(dataObj);
+            saveLocally(data);
         }
     });
 
-    function sendData(data) {
-        fetch(scriptURL, { method: 'POST', body: new URLSearchParams(data), mode: 'no-cors' })
-        .then(() => { alert("Data inserted successfully!"); resetForm(); })
-        .catch(() => saveToOffline(data))
-        .finally(() => {
-            submitBtn.disabled = false;
-            submitBtn.innerText = "Insert Data";
-            updatePendingCount();
-        });
+    async function send(data) {
+        try {
+            await fetch(scriptURL, { method: 'POST', body: new URLSearchParams(data), mode: 'no-cors' });
+            alert("Success!");
+            resetForm();
+        } catch (e) { saveLocally(data); }
+        finally { submitBtn.disabled = false; submitBtn.innerText = "Insert Data"; updateCount(); }
     }
 
-    function saveToOffline(data) {
-        const transaction = db.transaction(['pendingData'], 'readwrite');
-        transaction.objectStore('pendingData').add(data);
-        transaction.oncomplete = () => {
+    function saveLocally(data) {
+        const tx = db.transaction(['pendingData'], 'readwrite');
+        tx.objectStore('pendingData').add(data);
+        tx.oncomplete = () => {
             alert("Saved locally!");
             resetForm();
             submitBtn.disabled = false;
             submitBtn.innerText = "Insert Data";
-            updatePendingCount();
+            updateCount();
         };
     }
 
@@ -164,39 +172,40 @@
         if (!navigator.onLine || !db) return;
         const tx = db.transaction(['pendingData'], 'readonly');
         const store = tx.objectStore('pendingData');
-        const records = await new Promise(res => { store.getAll().onsuccess = (e) => res(e.target.result); });
-        const keys = await new Promise(res => { store.getAllKeys().onsuccess = (e) => res(e.target.result); });
-        
-        if (records.length === 0) return;
+        const records = await new Promise(r => store.getAll().onsuccess = (e) => r(e.target.result));
+        const keys = await new Promise(r => store.getAllKeys().onsuccess = (e) => r(e.target.result));
+
         for (let i = 0; i < records.length; i++) {
             try {
                 await fetch(scriptURL, { method: 'POST', body: new URLSearchParams(records[i]), mode: 'no-cors' });
                 const delTx = db.transaction(['pendingData'], 'readwrite');
-                await new Promise(res => { delTx.objectStore('pendingData').delete(keys[i]).onsuccess = res; });
-                updatePendingCount();
-                await new Promise(r => setTimeout(r, 500)); 
-            } catch (err) { break; }
+                await new Promise(r => delTx.objectStore('pendingData').delete(keys[i]).onsuccess = r);
+                updateCount();
+                await new Promise(r => setTimeout(r, 500));
+            } catch (e) { break; }
         }
     }
 
-    function updatePendingCount() {
+    function updateCount() {
         if (!db) return;
-        const countReq = db.transaction(['pendingData'], 'readonly').objectStore('pendingData').count();
-        countReq.onsuccess = () => {
-            const count = countReq.result;
-            document.getElementById('statusContainer').style.display = count > 0 ? 'block' : 'none';
-            document.getElementById('pendingCount').innerText = count;
+        const req = db.transaction(['pendingData'], 'readonly').objectStore('pendingData').count();
+        req.onsuccess = () => {
+            const c = req.result;
+            document.getElementById('statusContainer').style.display = c > 0 ? 'block' : 'none';
+            document.getElementById('pendingCount').innerText = c;
         };
     }
 
     window.addEventListener('online', syncData);
     function resetForm() { 
         form.reset(); 
-        document.getElementById('date').valueAsDate = new Date(); 
-        document.getElementById('otherDescription').style.display = 'none';
+        document.getElementById('date').valueAsDate = new Date();
+        otherWrapper.style.display = 'none';
     }
-    document.getElementById('resetBtn').addEventListener('click', resetForm);
-    if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); }); }
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js?v=2');
+    }
 </script>
 </body>
 </html>
