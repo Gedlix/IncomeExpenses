@@ -17,10 +17,10 @@
         .form-group { margin-bottom: 18px; position: relative; }
         label { display: block; margin-bottom: 8px; font-weight: 600; color: #bbb; font-size: 14px; }
         
-        /* Mobile Friendly Inputs */
+        /* Input Styling */
         input, select, textarea { 
             width: 100%; padding: 12px; border: 1px solid #444; border-radius: 10px; 
-            background: #252525; color: #fff; font-size: 16px; /* 16px prevents auto-zoom on iOS */
+            background: #252525; color: #fff; font-size: 16px;
             box-sizing: border-box; transition: 0.3s; -webkit-appearance: none; 
         }
         input:focus, select:focus { border-color: var(--primary); outline: none; background: #2d2d2d; }
@@ -32,12 +32,15 @@
             color: var(--primary); font-size: 12px; pointer-events: none; 
         }
 
-        #otherInputWrapper { display: none; margin-top: 10px; }
+        /* Default එක 'Other' නිසා මෙය ආරම්භයේදීම පෙන්වයි */
+        #otherInputWrapper { display: block; margin-top: 10px; }
+        
         .btn-container { display: flex; flex-direction: column; gap: 12px; margin-top: 25px; }
         button { padding: 15px; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: bold; color: #fff; transition: 0.2s; }
         .btn-insert { background: linear-gradient(135deg, #7e57c2, #5e35b1); }
         .btn-reset { background: #333; }
         #statusContainer { text-align: center; margin-top: 15px; font-size: 13px; color: var(--primary); background: rgba(187,134,252,0.1); padding: 10px; border-radius: 8px; display: none; }
+        @media (max-width: 480px) { body { padding: 10px; } .container { padding: 24px; } }
     </style>
 </head>
 <body>
@@ -54,11 +57,11 @@
             <label>Description</label>
             <div class="select-wrapper">
                 <select id="descSelect">
+                    <option value="Other" selected>Other (Type custom...)</option>
                     <option value="Current Bill">Current Bill</option>
                     <option value="Vegetable">Vegetable</option>
                     <option value="Facebook Ad">Facebook Ad</option>
                     <option value="Router Package">Router Package</option>
-                    <option value="Other">Other (Type custom...)</option>
                 </select>
             </div>
             <div id="otherInputWrapper">
@@ -84,8 +87,8 @@
             <label>Type</label>
             <div class="select-wrapper">
                 <select name="type">
-                    <option value="Income">Income</option>
                     <option value="Expenses">Expenses</option>
+                    <option value="Income">Income</option>
                 </select>
             </div>
         </div>
@@ -112,51 +115,56 @@
     const otherWrapper = document.getElementById('otherInputWrapper');
     let db;
 
-    // Set Date
+    // Default Date
     document.getElementById('date').valueAsDate = new Date();
 
-    // Handle "Other" visibility
+    // Dropdown එක වෙනස් කරන විට box එක පෙන්වීම හෝ සැඟවීම
     descSelect.addEventListener('change', function() {
         otherWrapper.style.display = (this.value === 'Other') ? 'block' : 'none';
     });
 
-    // DB Setup
-    const request = indexedDB.open('GedlixTrackerDB', 2); // Version up to trigger update
+    // Database Setup
+    const request = indexedDB.open('GedlixTrackerDB', 3);
     request.onupgradeneeded = (e) => {
-        if (!e.target.result.objectStoreNames.contains('pendingData')) {
-            e.target.result.createObjectStore('pendingData', { autoIncrement: true });
+        const d = e.target.result;
+        if (!d.objectStoreNames.contains('pendingData')) {
+            d.createObjectStore('pendingData', { autoIncrement: true });
         }
     };
     request.onsuccess = (e) => { db = e.target.result; updateCount(); syncData(); };
 
+    // Form Submit
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         submitBtn.disabled = true;
         submitBtn.innerText = "Processing...";
 
-        // Set final description
-        document.getElementById('finalDesc').value = (descSelect.value === 'Other') ? document.getElementById('customDesc').value : descSelect.value;
+        // තෝරාගත් අගය සකස් කිරීම
+        const selectVal = descSelect.value;
+        const customVal = document.getElementById('customDesc').value;
+        document.getElementById('finalDesc').value = (selectVal === 'Other') ? customVal : selectVal;
 
+        const formData = new FormData(form);
         const data = {};
-        new FormData(form).forEach((v, k) => data[k] = v);
+        formData.forEach((v, k) => data[k] = v);
 
         if (navigator.onLine) {
-            await send(data);
+            await sendData(data);
         } else {
-            saveLocally(data);
+            saveOffline(data);
         }
     });
 
-    async function send(data) {
+    async function sendData(data) {
         try {
             await fetch(scriptURL, { method: 'POST', body: new URLSearchParams(data), mode: 'no-cors' });
             alert("Success!");
             resetForm();
-        } catch (e) { saveLocally(data); }
+        } catch (e) { saveOffline(data); }
         finally { submitBtn.disabled = false; submitBtn.innerText = "Insert Data"; updateCount(); }
     }
 
-    function saveLocally(data) {
+    function saveOffline(data) {
         const tx = db.transaction(['pendingData'], 'readwrite');
         tx.objectStore('pendingData').add(data);
         tx.oncomplete = () => {
@@ -168,6 +176,7 @@
         };
     }
 
+    // දත්ත එකින් එක යැවීමේ ලොජික් එක (Sequential Sync)
     async function syncData() {
         if (!navigator.onLine || !db) return;
         const tx = db.transaction(['pendingData'], 'readonly');
@@ -190,21 +199,22 @@
         if (!db) return;
         const req = db.transaction(['pendingData'], 'readonly').objectStore('pendingData').count();
         req.onsuccess = () => {
-            const c = req.result;
-            document.getElementById('statusContainer').style.display = c > 0 ? 'block' : 'none';
-            document.getElementById('pendingCount').innerText = c;
+            const count = req.result;
+            document.getElementById('statusContainer').style.display = count > 0 ? 'block' : 'none';
+            document.getElementById('pendingCount').innerText = count;
         };
     }
 
     window.addEventListener('online', syncData);
+
     function resetForm() { 
         form.reset(); 
         document.getElementById('date').valueAsDate = new Date();
-        otherWrapper.style.display = 'none';
+        otherWrapper.style.display = 'block'; // Reset වලදීත් Other Default වේ
     }
 
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=2');
+        navigator.serviceWorker.register('sw.js?v=3');
     }
 </script>
 </body>
