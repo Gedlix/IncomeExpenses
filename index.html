@@ -15,8 +15,14 @@
         h2 { text-align: center; color: #bb86fc; margin-bottom: 32px; font-size: 26px; font-weight: 600; text-shadow: 0 2px 6px rgba(0,0,0,0.4); }
         .form-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: 600; color: #cfcfcf; font-size: 15px; }
-        input, select, textarea { width: 100%; padding: 14px; border: 1px solid #444; border-radius: 12px; box-sizing: border-box; font-size: 16px; background-color: #2a2a2a; color: #ffffff; transition: all 0.3s ease; }
+        input, select, textarea { width: 100%; padding: 14px; border: 1px solid #444; border-radius: 12px; box-sizing: border-box; font-size: 16px; background-color: #2a2a2a; color: #ffffff; transition: all 0.3s ease; appearance: none; } /* appearance: none මඟින් මොබයිල් style පාලනය කරයි */
         input:focus, select:focus, textarea:focus { outline: none; border-color: #bb86fc; box-shadow: 0 0 0 4px rgba(187, 134, 252, 0.25); background-color: #333; }
+        
+        /* Dropdown එකට ඊතලයක් එක් කිරීම */
+        .select-wrapper { position: relative; }
+        .select-wrapper::after { content: '▼'; font-size: 12px; color: #bb86fc; position: absolute; right: 15px; top: 50%; transform: translateY(-50%); pointer-events: none; }
+
+        #otherDescription { display: none; margin-top: 10px; border-color: #7e57c2; }
         .btn-container { display: flex; flex-direction: column; gap: 14px; margin-top: 25px; }
         button { padding: 16px; border: none; border-radius: 12px; cursor: pointer; font-size: 17px; font-weight: bold; color: white; transition: all 0.2s ease; }
         .btn-insert { background: linear-gradient(135deg, #7e57c2, #5e35b1); }
@@ -36,32 +42,40 @@
         </div>
 
         <div class="form-group">
-            <label for="description">Description</label>
-            <input type="text" id="description" name="description" placeholder="Choose or type description" list="description-list" required>
-            <datalist id="description-list">
-                <option value="Current Bill">
-                <option value="Vegetable">
-                <option value="Facebook Ad">
-                <option value="Router Package">
-            </datalist>
+            <label for="descriptionSelect">Description</label>
+            <div class="select-wrapper">
+                <select id="descriptionSelect" onchange="checkDescription(this)">
+                    <option value="Current Bill">Current Bill</option>
+                    <option value="Vegetable">Vegetable</option>
+                    <option value="Facebook Ad">Facebook Ad</option>
+                    <option value="Router Package">Router Package</option>
+                    <option value="Other">Other (Type custom...)</option>
+                </select>
+            </div>
+            <input type="text" id="otherDescription" placeholder="Enter custom description">
+            <input type="hidden" id="finalDescription" name="description">
         </div>
 
         <div class="form-group">
             <label for="category">Category</label>
-            <select id="category" name="category">
-                <option value="My">My</option>
-                <option value="Parents">Parents</option>
-                <option value="Siblings">Siblings</option>
-                <option value="Vehicle">Vehicle</option>
-                <option value="Hire">Hire</option>
-            </select>
+            <div class="select-wrapper">
+                <select id="category" name="category">
+                    <option value="My">My</option>
+                    <option value="Parents">Parents</option>
+                    <option value="Siblings">Siblings</option>
+                    <option value="Vehicle">Vehicle</option>
+                    <option value="Hire">Hire</option>
+                </select>
+            </div>
         </div>
         <div class="form-group">
             <label for="type">Type</label>
-            <select id="type" name="type">
-                <option value="Income">Income</option>
-                <option value="Expenses">Expenses</option>
-            </select>
+            <div class="select-wrapper">
+                <select id="type" name="type">
+                    <option value="Income">Income</option>
+                    <option value="Expenses">Expenses</option>
+                </select>
+            </div>
         </div>
         <div class="form-group">
             <label for="price">Amount (Rs.)</label>
@@ -81,28 +95,37 @@
     const scriptURL = 'https://script.google.com/macros/s/AKfycbyugQ9FE4Gw9pPKwlq_-aRzQKYZv92X-RK7dfU9FeV7R1CvIy3zk0syAvi-Uc-QC-Ml/exec';
     const form = document.getElementById('dataForm');
     const submitBtn = document.getElementById('submitBtn');
-    const resetBtn = document.getElementById('resetBtn');
     let db;
 
     document.getElementById('date').valueAsDate = new Date();
 
-    const request = indexedDB.open('GedlixTrackerDB', 1);
-    request.onupgradeneeded = (e) => {
-        db = e.target.result;
-        if (!db.objectStoreNames.contains('pendingData')) {
-            db.createObjectStore('pendingData', { autoIncrement: true });
+    // Other box එක පාලනය කිරීම
+    function checkDescription(select) {
+        const otherInput = document.getElementById('otherDescription');
+        if (select.value === 'Other') {
+            otherInput.style.display = 'block';
+            otherInput.required = true;
+        } else {
+            otherInput.style.display = 'none';
+            otherInput.required = false;
         }
-    };
-    request.onsuccess = (e) => {
-        db = e.target.result;
-        updatePendingCount();
-        syncData();
-    };
+    }
+
+    // IndexedDB Setup
+    const request = indexedDB.open('GedlixTrackerDB', 1);
+    request.onupgradeneeded = (e) => { e.target.result.createObjectStore('pendingData', { autoIncrement: true }); };
+    request.onsuccess = (e) => { db = e.target.result; updatePendingCount(); syncData(); };
 
     form.addEventListener('submit', e => {
         e.preventDefault();
         submitBtn.disabled = true;
         submitBtn.innerText = "Processing...";
+
+        // Description අගය තෝරාගැනීම
+        const descSelect = document.getElementById('descriptionSelect');
+        const otherInput = document.getElementById('otherDescription');
+        document.getElementById('finalDescription').value = (descSelect.value === 'Other') ? otherInput.value : descSelect.value;
+
         const formData = new FormData(form);
         const dataObj = {};
         formData.forEach((value, key) => dataObj[key] = value);
@@ -116,10 +139,7 @@
 
     function sendData(data) {
         fetch(scriptURL, { method: 'POST', body: new URLSearchParams(data), mode: 'no-cors' })
-        .then(() => {
-            alert("Data inserted successfully!");
-            resetForm();
-        })
+        .then(() => { alert("Data inserted successfully!"); resetForm(); })
         .catch(() => saveToOffline(data))
         .finally(() => {
             submitBtn.disabled = false;
@@ -146,8 +166,8 @@
         const store = tx.objectStore('pendingData');
         const records = await new Promise(res => { store.getAll().onsuccess = (e) => res(e.target.result); });
         const keys = await new Promise(res => { store.getAllKeys().onsuccess = (e) => res(e.target.result); });
+        
         if (records.length === 0) return;
-
         for (let i = 0; i < records.length; i++) {
             try {
                 await fetch(scriptURL, { method: 'POST', body: new URLSearchParams(records[i]), mode: 'no-cors' });
@@ -155,10 +175,7 @@
                 await new Promise(res => { delTx.objectStore('pendingData').delete(keys[i]).onsuccess = res; });
                 updatePendingCount();
                 await new Promise(r => setTimeout(r, 500)); 
-            } catch (err) {
-                console.log("Sync failed for record", i);
-                break;
-            }
+            } catch (err) { break; }
         }
     }
 
@@ -173,8 +190,12 @@
     }
 
     window.addEventListener('online', syncData);
-    function resetForm() { form.reset(); document.getElementById('date').valueAsDate = new Date(); }
-    resetBtn.addEventListener('click', resetForm);
+    function resetForm() { 
+        form.reset(); 
+        document.getElementById('date').valueAsDate = new Date(); 
+        document.getElementById('otherDescription').style.display = 'none';
+    }
+    document.getElementById('resetBtn').addEventListener('click', resetForm);
     if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); }); }
 </script>
 </body>
