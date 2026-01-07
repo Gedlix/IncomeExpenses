@@ -36,9 +36,15 @@
             <input type="date" id="date" name="date" required>
         </div>
         <div class="form-group">
-            <label for="description">Description</label>
-            <textarea id="description" name="description" placeholder="Enter description" required></textarea>
-        </div>
+    <label for="description">Description</label>
+    <input type="text" id="description" name="description" placeholder="Choose or type description" list="description-list" required>
+    <datalist id="description-list">
+        <option value="Current Bill">
+        <option value="Vegetable">
+        <option value="Facebook Ad">
+        <option value="Router Package">
+    </datalist>
+</div>
         <div class="form-group">
               <label>Category</label>
   <select id="category" name="category">
@@ -204,5 +210,6 @@
 </script>
 </body>
 </html>
+
 
 
